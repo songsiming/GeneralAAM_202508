@@ -1,9 +1,7 @@
 """
 迭代说明：
-	2025-09-29:
-		1) 基于“三维_比例_9.py”，使用“虚拟指令加速度”+PID，修改而来
-		2) 实现PID自动调参
-		3) 测试多种态势
+	2025-10-04:
+		1) 基于“三维_比例_9.py”，使用“虚拟指令加速度”，修改而来
 迭代日期：2025-09-26
 涉及到的坐标系：
 	弹体坐标系(B系)：
@@ -81,17 +79,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	target_pos = np.array([76000.0, 0.0, 0.0])  # 目标初始位置(北-天-东) [m]
 	target_vel = np.array([0, 20, -160])  # 目标初始速度(北-天-东) [m/s]
 
-	# 定倾角弹道参数
-	missile_gamma = np.arctan2(missile_vel[1], missile_vel[0])
-	given_gamma = np.deg2rad(18)  # 给定弹道倾角
-	gamma_loft = 5000  # 转平飞高度
-	integral_err_gamma = 0.0
-	prev_err_gamma = 0.0
-	Kp_gamma = 2000
-	Ki_gamma = 0.0001
-	Kd_gamma = 0.0001
-	missile_gamma_max = 0.0
-	gamma_control_yes = 0.0
+	# 定过载参数
+	overload_height = 5000
 
 	# 仿真参数
 	dt = 0.01  # 仿真时间步长 [s]
@@ -133,6 +122,10 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	C_m_beta = -0.8  # 气动相关，偏航力矩系数对侧滑角导数(静稳定性导数) [1/rad] TODO: 取-8.6至-28.6[/rad]或-0.15至-0.20
 	C_m_q = -0.2  # 气动相关，俯仰(纵向)阻尼导数 TODO: 取-0.2至-1.5[/rad]
 	C_m_r = -0.2  # 气动相关，偏航(横航向)阻尼导数 TODO: 取-0.2至-1.5[/rad]
+
+	# 环境参数
+	rho = 1.225  # 空气密度 [kg/m^3]
+	g = 9.81  # 重力加速度 [m/s^2]
 
 	# 一些需要赋初值的变量
 	missile_alpha = 0  # 初始时刻，导弹迎角 [rad]
@@ -188,10 +181,6 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	pos_g_x_prev = missile_pos[0]  # 上一时刻，G系导弹位置(北向) [m]
 	pos_g_y_prev = missile_pos[1]  # 上一时刻，G系导弹位置(天向) [m]
 	pos_g_z_prev = missile_pos[2]  # 上一时刻，G系导弹位置(东向) [m]
-
-	# 环境参数
-	rho = 1.225  # 空气密度 [kg/m^3]
-	g = 9.81  # 重力加速度 [m/s^2]
 
 	# 存储数据（顺序：舵面->姿态->速度->位置，T在前M在后）
 	target_pos_history = np.zeros((n_steps, 3))  # 存储目标位置(G系)
@@ -293,49 +282,19 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		acc_cmd_v = N_v * V_m_v * lambda_v_dot
 		acc_cmd_h = N_h * V_m_h * lambda_h_dot
 
-		# TODO: 在这里计算定倾角的指令加速度
-		if missile_pos[1] > gamma_loft:
-			given_gamma = 0
-		if np.linalg.norm(rel_pos) > 20e3:
-			# 计算误差
-			err_gamma = missile_gamma - given_gamma
-			err_gamma = -err_gamma
-
-			# 计算PID各项
-			# 比例项
-			P_gamma = Kp_gamma * err_gamma
-
-			# 积分项（指数衰减近似）
-			forgetting_factor = 1.0 - (1.0 / 1000)  # 近似等效于500个点的窗口
-			integral_err_gamma = integral_err_gamma * forgetting_factor + err_gamma * dt
-			I_gamma = Ki_gamma * integral_err_gamma
-
-			# 微分项（使用后向差分）
-			derivative_err_gamma = (err_gamma - prev_err_gamma) / dt
-			D_gamma = Kd_gamma * derivative_err_gamma
-			prev_err_gamma = err_gamma
-
-			# 合成PID输出
-			acc_cmd_v = P_gamma + I_gamma + D_gamma
-			acc_cmd_v = np.clip(acc_cmd_v, -20 * g, 20 * g)
-
-		# 记录符合高度的步数
-		if abs(missile_gamma - given_gamma) <= np.deg2rad(1):
-			gamma_control_yes = gamma_control_yes + 1
-
-		# 记录导弹最大高度(便于分析超调量)
-		if missile_gamma > missile_gamma_max:
-			missile_gamma_max = missile_gamma
-
 		# 指令加速度不能超过导弹最大过载
 		if abs(acc_cmd_v) > 20 * g:
 			acc_cmd_v = np.sign(acc_cmd_v) * 20 * g
 		if abs(acc_cmd_h) > 20 * g:
 			acc_cmd_h = np.sign(acc_cmd_h) * 20 * g
 
+		# TODO: 在这里计算定过载的指令加速度
+		if np.linalg.norm(rel_pos) > 20e3 and missile_pos[1] < overload_height:
+			acc_cmd_v = 10
+
 		# 计算误差
 		err_v = acc_cmd_v - acc_b_y
-		err_h = acc_cmd_h + acc_b_z  # 这里改了个负号
+		err_h = acc_cmd_h + acc_b_z
 
 		control_v_method = 2
 		if control_v_method == 1:
@@ -562,7 +521,7 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		F_b_ext_y = F_b_aero_y
 		F_b_ext_z = F_b_aero_z
 
-		# 由轴向力和法向力，计算法向过载和法向过载(过载就是不考虑重力加速度的，当前版本只有气动力)
+		# 由轴向力和法向力，计算法向过载和法向过载(过载就是不考虑重力加速度的，当前版本有气动力+推力)
 		n_X = F_b_ext_x / (missile_mass_t * g)
 		n_Y = F_b_ext_y / (missile_mass_t * g)
 		n_Z = F_b_ext_z / (missile_mass_t * g)
@@ -728,9 +687,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		# 打印
 		if i > 0 and plt_yes:
 			print(f'---{i}, m_pos=[{missile_pos[0]:.2f}, {missile_pos[1]:.2f}, {missile_pos[2]:.2f}], '
-				  f'm_gamma={missile_gamma * 57.3:.2f}, '
 				  f'mt_d={mt_dist:.2f}, '
-				  f'delta_e={delta_e * 57.3:.2f}, ac_cmd_v={acc_cmd_v:.2f}, err_v={err_v:.2f}, '
+				  f'delta_e={delta_e * 57.3:.2f}, ac_cmd_v={acc_cmd_v:.2f}, ac_v={acc_b_y:.2f}, err_v={err_v:.2f}, '
 				  f'F_aero_dif={F_aero_dif:.2f}, F_thrust_dif={F_thrust_dif:.2f}, '
 				  f'ac_dif={ac_dif:.2f}, ac_dif_vh={ac_dif_vh:.2f}, '
 				  f'delta_r={delta_r * 57.3:.2f}, ac_cmd_h={acc_cmd_h:.2f}, err_h={err_h:.2f}, '
@@ -934,7 +892,7 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	# 水平误差
 	plt_i = plt_i + 1
 	plt.subplot(plt_num_v, plt_num_h, plt_i)
-	plt.plot(t[1:-plt_stop], err_h_history[1:len(t) - plt_stop], label='水平误差')
+	plt.plot(t[1:-plt_stop], err_h_history[1:len(t)-plt_stop], label='水平误差')
 	plt.xlabel('时间 [s]')
 	plt.ylabel('加速度 [m/s^2]')
 	plt.title('水平误差')
@@ -974,14 +932,9 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 
 	plt.tight_layout()
 
-	print(f'missile_gamma_max={missile_gamma_max * 57.3:.2f}')
-	ratio_control_yes = gamma_control_yes / stop_i
-	print(f'ratio_control_yes={ratio_control_yes*100:.2f}%')
-
 	if plt_yes:
 		plt.show(block=False)  # block=False 允许非阻塞显示
-		plt.pause(300)  # 暂停2秒
-		# plt.savefig(f'./gam/{int(ratio_control_yes * 100)}_{KPi + 1}_{KIi + 1}_{KDi + 1}.png')
+		plt.pause(500)  # 暂停2秒
 	plt.close()  # 关闭当前图像
 
 	return fix_v, fix_h
@@ -990,5 +943,4 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 if __name__ == "__main__":
 	# FIX_V, FIX_H = proportional_guidance()
 	FIX_V = FIX_H = 0.01
-
 	proportional_guidance(fix_v=FIX_V, fix_h=FIX_H)
