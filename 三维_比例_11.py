@@ -184,7 +184,7 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	missile_q_prev = 0.0  # 上一时刻，俯仰角速率 [rad/s]
 	missile_r_prev = 0.0  # 上一时刻，偏航角速率 [rad/s]
 	missile_theta_prev = np.arctan2(missile_vel[1], missile_vel[0])  # 上一时刻，导弹俯仰角 [rad]
-	missile_psi_prev = np.arctan2(-missile_vel[2], missile_vel[0])  # 上一时刻，导弹俯仰角 [rad]
+	missile_psi_prev = np.arctan2(-missile_vel[2], missile_vel[0])  # 上一时刻，导弹偏航角 [rad]
 	lambda_v_prev = np.arctan2(rel_pos_t0[1] + fix_v, rel_pos_t0[0])  # 上一时刻，铅锤方向视线角 [rad]
 	lambda_h_prev = np.arctan2(-rel_pos_t0[2] - fix_h, rel_pos_t0[0])  # 上一时刻，水平方向视线角 [rad]
 	vel_n_x_prev = missile_vel[0]  # 上一时刻，N系导弹速度(北向) [m/s]
@@ -550,7 +550,7 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		F_n_aero = np.linalg.norm([F_n_aero_x, F_n_aero_y, F_n_aero_z])
 		F_aero_dif = F_b_aero - F_n_aero
 
-		# 由弹体系受力计算导航系受力(气动力+重力+推力）
+		# 由弹体系受力计算导航系受力(气动力+推力）
 		F_n_ext_x = + F_b_ext_x * np.cos(missile_theta) * np.cos(missile_psi) \
 					- F_b_ext_y * np.sin(missile_theta) * np.cos(missile_psi) \
 					+ F_b_ext_z * np.sin(missile_psi)
