@@ -17,6 +17,8 @@
 		9) 侧滑角限幅
 	2025-09-30
 		11) 修改水平方向误差定义
+	2025-10-11
+		12) 修改垂直方向视线角、弹道倾角定义
 迭代日期：2025-09-26
 涉及到的坐标系：
 	弹体坐标系(B系)：
@@ -183,9 +185,11 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	delta_r_dot_prev = 0.0  # 上一时刻，上一次舵偏角速率(水平方向) [1/rad]
 	missile_q_prev = 0.0  # 上一时刻，俯仰角速率 [rad/s]
 	missile_r_prev = 0.0  # 上一时刻，偏航角速率 [rad/s]
-	missile_theta_prev = np.arctan2(missile_vel[1], missile_vel[0])  # 上一时刻，导弹俯仰角 [rad]
+	missile_vel_zx = np.linalg.norm([missile_vel[0], missile_vel[2]])
+	missile_theta_prev = np.arctan2(missile_vel[1], missile_vel_zx)  # 上一时刻，导弹俯仰角 [rad]
 	missile_psi_prev = np.arctan2(-missile_vel[2], missile_vel[0])  # 上一时刻，导弹偏航角 [rad]
-	lambda_v_prev = np.arctan2(rel_pos_t0[1] + fix_v, rel_pos_t0[0])  # 上一时刻，铅锤方向视线角 [rad]
+	rel_pos_zx_prev = np.linalg.norm([rel_pos_t0[0], rel_pos_t0[2]])
+	lambda_v_prev = np.arctan2(rel_pos_t0[1] + fix_v, rel_pos_zx_prev)  # 上一时刻，铅锤方向视线角 [rad]
 	lambda_h_prev = np.arctan2(-rel_pos_t0[2] - fix_h, rel_pos_t0[0])  # 上一时刻，水平方向视线角 [rad]
 	vel_n_x_prev = missile_vel[0]  # 上一时刻，N系导弹速度(北向) [m/s]
 	vel_n_y_prev = missile_vel[1]  # 上一时刻，N系导弹速度(天向) [m/s]
@@ -265,7 +269,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 			break
 
 		# 计算视线角 (lambda) [rad]
-		lambda_v = np.arctan2(rel_pos[1] + fix_v, rel_pos[0])  # 注意：arctan2(y, x) 返回的是与x轴的夹角
+		rel_pos_zx = np.linalg.norm([rel_pos[0], rel_pos[2]])
+		lambda_v = np.arctan2(rel_pos[1] + fix_v, rel_pos_zx)  # 注意：arctan2(y, x) 返回的是与zx平面的夹角
 		lambda_h = np.arctan2(-rel_pos[2] - fix_h, rel_pos[0])  # 注意：arctan2(z, x) 返回的是与x轴的夹角(逆时针)
 
 		# 计算视线角速率 (dLambda/dt) [rad/s] - 使用后向差分
@@ -488,7 +493,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		missile_psi = missile_psi_prev + missile_r * dt
 
 		# 更新当前弹道倾角和弹道偏角
-		missile_gamma = np.arctan2(missile_vel[1], missile_vel[0])
+		missile_vel_zx = np.linalg.norm([missile_vel[0], missile_vel[2]])
+		missile_gamma = np.arctan2(missile_vel[1], missile_vel_zx)
 		missile_psis = np.arctan2(-missile_vel[2], missile_vel[0])
 
 		# 计算迎角和侧滑角
@@ -604,7 +610,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 
 		# 计算弹道系加速度
 		V_t = np.linalg.norm([vel_n_x, vel_n_y, vel_n_z])
-		missile_gamma_t = np.arctan2(vel_n_y, vel_n_x)
+		V_zx = np.linalg.norm([vel_n_x, vel_n_z])
+		missile_gamma_t = np.arctan2(vel_n_y, V_zx)
 		missile_psis_t = np.arctan2(-vel_n_z, vel_n_x)
 		acc_2_x = (V_t - V_m) / dt
 		acc_2_y = V_t * (missile_gamma_t - missile_gamma) / dt
@@ -899,7 +906,7 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 	# 水平误差
 	plt_i = plt_i + 1
 	plt.subplot(plt_num_v, plt_num_h, plt_i)
-	plt.plot(t[1:-plt_stop], err_h_history[1:len(t)-plt_stop], label='水平误差')
+	plt.plot(t[1:-plt_stop], err_h_history[1:len(t) - plt_stop], label='水平误差')
 	plt.xlabel('时间 [s]')
 	plt.ylabel('加速度 [m/s^2]')
 	plt.title('水平误差')
