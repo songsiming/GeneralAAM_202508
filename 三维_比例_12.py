@@ -18,7 +18,7 @@
 	2025-09-30
 		11) 修改水平方向误差定义
 	2025-10-11
-		12) 修改垂直方向视线角、弹道倾角定义
+		12) 修改垂直方向视线角、弹道倾角定义+修改指令加速度计算方法
 迭代日期：2025-09-26
 涉及到的坐标系：
 	弹体坐标系(B系)：
@@ -296,8 +296,8 @@ def proportional_guidance(fix_v=0.0, fix_h=0.0):
 		V_m_h = np.linalg.norm([missile_vel[0], missile_vel[2]])
 
 		# 计算指令加速度 (ac) [m/s^2]
-		acc_cmd_v = N_v * V_m_v * lambda_v_dot
-		acc_cmd_h = N_h * V_m_h * lambda_h_dot
+		acc_cmd_v = N_v * V_m * lambda_v_dot
+		acc_cmd_h = N_h * V_m * lambda_h_dot
 
 		# 指令加速度不能超过导弹最大过载
 		if abs(acc_cmd_v) > 20 * g:
