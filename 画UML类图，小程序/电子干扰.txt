@@ -1,0 +1,109 @@
+类名：
+ElectronicInterference
+
+变量：
+double m_loc_LLA[3];					// 导弹，位置，纬经高坐标系
+double m_vel_G_v[3];					// 导弹，速度，地理坐标系，矢量
+int m_state;							// 导弹，状态
+	
+double t_loc_LLA[3];					// 目标飞机，位置，纬经高坐标系
+double t_loc_NUE[3];					// 目标飞机，位置，北天东坐标系
+double t_vel_G_v[3];					// 目标飞机，速度，地理坐标系，矢量
+double dist_target_detect = 3000;		// 目标飞机，探测范围（一般几公里，默认值3km）
+double id_electric;						// 目标飞机，是否选择开启电子干扰
+double ei_time = 0;						// 目标飞机，开启电子干扰时的时间
+double t_theta = 0;						// 目标飞机，俯仰角
+double t_psi = 0;						// 目标飞机，偏航角
+double t_vel_G_s = 170;					// 目标飞机，飞行速度，地理坐标系，标量
+
+double rel_loc_NUE[3];					// 弹目相对，位置，北天东坐标系
+
+double dt = 0.01;						// 平台，仿真步长
+bool cout_yes = true;					// 平台，是否打印
+std::string custom_path = "";			// 平台，配置文件路径
+
+bool ei_yes = false;					// 电子干扰模块，是否开启电子干扰[默认为否]
+double id_IRorCHAFF = 1;				// 电子干扰模块，选择ID[开启电子干扰类型]
+double t_loc_LLA_ei[3];					// 电子干扰模块，更新的飞机位置
+
+int Number_IR;							// 电子干扰模块，红外干扰弹数量(单次投放)
+int Number_CHAFF;						// 电子干扰模块，箔条弹数量(单次投放)
+double lamda_ba_CHAFF = 17.5;			// 电子干扰模块，箔条平均RCS
+double density_IR;						// 电子干扰模块，红外干扰弹强度
+
+int ir_total_number;					// 电子干扰模块，红外诱饵弹总数量
+int chaff_total_number;					// 电子干扰模块，箔条弹总数量
+
+
+
+公有函数(+)：
+// 电子干扰，初始化
+void initialize(ElectronicInterference_Data& ei_input);
+
+// 电子干扰，调用
+void employ_EI();
+
+// 电子干扰，赋值
+void set_EI_data(ElectronicInterference_Data& ei_input);
+
+// 电子干扰，取值
+void get_EI_data(ElectronicInterference_Data& ei_output);
+
+// 箔条干扰弹的位置
+void ChaffPosition(
+	double location_x, double location_y, double location_z, double location_theta_a, double location_psi_a,
+	double location_Va, std::vector<std::vector<double>>& locationI);
+// 箔条干扰弹的辐射强度
+void ChaffIntensity(int number_n, std::vector<std::vector<double>>& Idata);
+
+// 箔条干扰弹在某一时刻的位置【lxc修改，20250115】
+void ChaffPositionAtTime(
+	double location_x,	double location_y, double location_z, double location_theta_a, double location_psi_a,
+	double location_Va, double time, std::vector<double>& locationIattime);					
+// 箔条干扰弹在某一时刻的辐射强度
+void ChaffIntensityAtTime(int number_n, double lamda_ba_CHAFF, double time, double& Idataattime);
+
+// 判断箔条干扰弹辐射源是否在导弹瞬时视场范围内
+void ChaffTestCheat(
+	const std::vector<double>& location_m,
+	const std::vector<double>& location_a,
+	const std::vector<double>& location_IRt,
+	const std::vector<double>& vm,
+	double I1,
+	double I2, 
+	std::vector<double>& location_c);
+
+// 计算视线方向飞机的RCS
+double ChaffAngelIntensity(
+	const std::vector<double>& location_a, const std::vector<double>& location_m, const std::vector<double>& v_a, const std::vector<double>& v_m, std::string custom_path);
+// 红外干扰弹的位置
+void IRPosition(double location_x, double location_y, double location_z, double location_theta_a, double location_psi_a,
+	double location_Va, std::vector<std::vector<double>>& locationI);
+// 红外干扰弹的辐射强度
+void IRIntensity(int number_n, std::vector<std::vector<double>>& Idata);
+
+// 红外干扰弹在某一时刻的位置-20250114【lxc修改，20250115】
+void IRPositionAtTime(double location_x, double location_y, double location_z, double location_thetaa, double location_psia,
+	double location_Va, double time, std::vector<double>& locationIattime);		
+// 红外干扰弹在某一时刻的辐射强度-20250114
+void IRIntensityAtTime(int number_n, double density_IR, double time, double& intensity);
+
+// 判断红外干扰弹辐射源是否在导弹瞬时视场范围内
+void IRTestCheat(
+	const std::vector<double>& location_m,
+	const std::vector<double>& location_a,
+	const std::vector<double>& location_IRt,
+	double I1,
+	double I2, 
+	std::vector<double>& location_c);
+
+// 计算视线方向飞机的红外辐射强度
+double IRAngelIntensity(const std::vector<double>& location_a,
+	const std::vector<double>& location_m,
+	const std::vector<double>& v_a,
+	const std::vector<double>& v_m,
+	std::string custom_path);
+
+私有函数(-)：
+void LLA_2_NUE(double LLA_t[3], double LLA_m[3], double NUE[3]);
+void NUE_2_LLA(double LLA_prev[3], double NUE_delta[3], double LLA[3]);

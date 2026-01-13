@@ -1,0 +1,29 @@
+类名：
+AirtoAir
+
+变量：
+UpdateInfo* update_info;                                // 更新信息指针 - 指向系统更新数据 [-]
+MissileData* m_data;                                    // 导弹数据指针 - 指向导弹本体参数 [-]
+GuidancePara* guidance_para;                            // 制导参数指针 - 指向制导控制参数 [-]
+
+int guidance_phase_id = 1;                              // 制导阶段 [-]
+
+double pincer_psis = -18.0 / 180.0 * acos(-1);          // 期望目标弹道偏角 [rad]
+double pincer_adjust_dist = 20e3;                       // 弹道偏角调整距离 [m]
+
+double pincer_psis_t0 = 0.0 / 180.0 * acos(-1);         // 初始时刻目标弹道偏角 [rad]
+bool pincer_psis_got = false;                           // 目标弹道偏角获取标志 [-]
+double pincer_overload_cmd = 3;                         // 钳形制导过载指令 [g]
+double pincer_rel_pos_t0[3] = { 0,0,0 };                // 初始时刻相对位置向量 [m]
+double pincer_mt_dist_t0;                               // 初始时刻导弹-目标距离 [m]
+
+double pincer_adjust_dist_psis = 20e3;                  // 钳形弹道，弹道偏角调整距离(阶段1) [m]
+double pincer_adjust_dist_acmd = 10e3;                  // 钳形弹道，加速度指令调整距离(阶段2) [m]
+
+
+
+公有函数(+)：
+void ballistic_pincer(PincerData* pincer_data);
+
+私有函数(-)：
+void step_pincer();

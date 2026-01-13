@@ -1,0 +1,64 @@
+类名：
+Radio
+
+变量：
+UpdateInfo* update_info;
+MissileData* m_data;
+GuidancePara* guidance_para;
+
+int guidance_phase_id = 1;
+
+bool radio_yes = false;                                 // 是否开启无线电指令修正（不开启则进入上帝视角）[-]
+double intf_coef_radio = 1.0;                           // 无线电干扰系数（理想情况下是0，一般不理想）[-]
+
+double sim_time = 0.0;                                  // 仿真时间 [s]
+double dt = 0.01;                                       // 仿真步长 [s]
+double mt_dist = 0.0;                                   // 导弹-目标距离 [m]
+
+bool intf_time_yes = false;                             // 干扰时间使能标志 [-]
+double intf_time = 30.0;                                // 无线电干扰开始时间 [s]
+
+double t_loc_NUE_input[3] = { 0,0,0 };                  // 输入的目标位置(北-东-天坐标系) [m]
+double t_loc_NUE_trans[3] = { 0,0,0 };                  // 输出的目标位置(北-东-天坐标系) [m]
+
+double seeker_power_dist = 20e3;                        // 导引头开机距离 [m]
+double radio_enable_probability = 0.8;                  // 无线电指令能如期工作的概率 [-]
+
+double intf_N_mean = 0;                                 // 北向干扰均值 [m]
+double intf_N_var = 3.3;                                // 北向干扰方差 [m^2]
+double intf_N_max = 10;                                 // 北向干扰最大值 [m]
+double intf_N_min = -10;                                // 北向干扰最小值 [m]
+
+double intf_U_mean = 0;                                 // 天向干扰均值 [m]
+double intf_U_var = 3.3;                                // 天向干扰方差 [m^2]
+double intf_U_max = 10;                                 // 天向干扰最大值 [m]
+double intf_U_min = -10;                                // 天向干扰最小值 [m]
+
+double intf_E_mean = 0;                                 // 东向干扰均值 [m]
+double intf_E_var = 3.3;                                // 东向干扰方差 [m^2]
+double intf_E_max = 10;                                 // 东向干扰最大值 [m]
+double intf_E_min = -10;                                // 东向干扰最小值 [m]
+
+bool intf_filter_yes = true;                            // 干扰滤波使能标志 [-]
+
+double intf_N_filter_alpha = 0.15;                      // 北向干扰滤波系数 [-]
+double intf_N_prev = 0.0;                               // 上一时刻北向干扰值 [m]
+
+double intf_U_filter_alpha = 0.15;                      // 天向干扰滤波系数 [-]
+double intf_U_prev = 0.0;                               // 上一时刻天向干扰值 [m]
+
+double intf_E_filter_alpha = 0.15;                      // 东向干扰滤波系数 [-]
+double intf_E_prev = 0.0;                               // 上一时刻东向干扰值 [m]
+
+bool intf_window_yes = true;                            // 干扰滑动窗口使能标志 [-]
+int intf_N_window_size = 100;                           // 北向干扰滑动窗口大小 [-]
+std::vector<double> intf_N_window_list;                 // 北向干扰滑动窗口列表 [-]
+int intf_U_window_size = 100;                           // 天向干扰滑动窗口大小 [-]
+std::vector<double> intf_U_window_list;                 // 天向干扰滑动窗口列表 [-]
+int intf_E_window_size = 100;                           // 东向干扰滑动窗口大小 [-]
+std::vector<double> intf_E_window_list;                 // 东向干扰滑动窗口列表 [-]
+	
+公有函数(+)：
+void radio_trans(double t_loc_NUE_input[3], double t_loc_NUE_trans[3]);
+
+私有函数(-)：

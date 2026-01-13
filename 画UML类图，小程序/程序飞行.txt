@@ -1,0 +1,77 @@
+类名：
+AirtoAir
+
+变量：
+UpdateInfo* update_info;                                // 更新信息指针 - 指向系统更新数据 [-]
+MissileData* m_data;                                    // 导弹数据指针 - 指向导弹本体参数 [-]
+GuidancePara* guidance_para;                            // 制导参数指针 - 指向制导控制参数 [-]
+
+double height_given = 9000;                             // 设定飞行高度 [m]
+
+double height_Kp = 0.3;									// 高度控制PID比例系数 [1/s^2]
+double height_Ki = 0.0001;								// 高度控制PID积分系数 [1/s^3]
+double height_Kd = 0.9;									// 高度控制PID微分系数 [-]
+double height_err_int = 0.0;                            // 高度误差积分值 [m*s]
+double height_err_prev = 0.0;                           // 上一时刻高度误差值 [m]
+int height_err_window_size = 1000;						// 高度误差滑动窗口长度 [-]
+
+double m_loc_G_y_max = 0.0;                             // 导弹最大飞行高度 [m]
+int height_control_yes = 0;                             // 高度控制使能标志 [-]
+int height_control_num = 0;                             // 高度控制计数器 [-]
+bool cout_yes = true;                                   // 输出开关 - 控制是否输出调试信息 [-]
+
+double gamma_given = 18.0 / 180.0 * acos(-1);           // 给定弹道倾角 [rad]
+double gamma_height = 8000;                             // 转平飞高度 [m]
+double gamma_err_int = 0.0;                             // 弹道倾角误差积分值 [rad*s]
+double gamma_err_prev = 0.0;                            // 上一时刻弹道倾角误差值 [rad]
+double gamma_Kp = 2000;                                 // 弹道倾角控制PID比例系数 [1/s^2]
+double gamma_Ki = 0.0001;                               // 弹道倾角控制PID积分系数 [1/s^3]
+double gamma_Kd = 0.0001;                               // 弹道倾角控制PID微分系数 [-]
+int gamma_err_window_size = 1000;						// 弹道倾角误差滑动窗口长度 [-]
+double gamma_m_max = 0.0;                               // 最大弹道倾角 [rad]
+int gamma_control_yes = 0;                              // 弹道倾角控制使能标志 [-]
+int gamma_control_num = 0;                              // 弹道倾角控制计数器 [-]
+
+
+double overload_Kp = 2.697682;                          // 过载控制PID比例系数 [-]
+double overload_Ki = 1.630957;                          // 过载控制PID积分系数 [1/s]
+double overload_Kd = 0.039811;                          // 过载控制PID微分系数 [s]
+double overload_control_method = 2;                     // 过载控制方法选择 [-]
+double overload_height = 8000;                          // 目标飞行高度 [m]
+double overload_given = 1.8;                            // 设定过载值 [g]
+double overload_prev = 0;                               // 上一时刻实际过载值 [g]
+double overload_err_int = 0.0;                          // 过载误差积分值 [g*s]
+double overload_err_prev = 0.0;                         // 上一时刻过载误差值 [g]
+double acc_cmd_v_filter_alpha = 0.15;                   // 垂直加速度指令滤波系数 [-]
+double acc_cmd_v_prev = (overload_given - 1) * 9.81;    // 上一时刻垂直加速度指令 [m/s^2]
+
+int overload_stage_num = 0;                             // 过载飞行阶段计数器 [-]
+int overload_control_num = 0;                           // 过载控制计数器 [-]
+double overload_control_ratio = 0;                      // 过载控制比例 [-]
+
+
+
+double loft_height_given = 18000;                       // 设定爬升目标高度 [m]
+double loft_height_max = 0;                             // 实际达到的最大高度 [m]
+double loft_height_fix = 200;                           // 高度修正量 [m]
+double loft_height_err = 0;                             // 高度误差值 [m]
+
+int loft_init_method = 3;								// 爬高初始化逻辑
+int loft_loop_num = 10;                                 // 爬高循环次数计数器 [-]
+double loft_fix_ratio = 0.3;                            // 高度修正比例系数 [-]
+
+double mt_dist_prev = 1e9;                              // 上一时刻导弹-目标距离 [m]
+double mt_dist_now = 1e8;                               // 当前时刻导弹-目标距离 [m]
+
+bool loft_height_pass = false;                          // 爬高阶段完成标志 [-]
+
+
+公有函数(+)：
+void ballistic_loft(LoftData* loft_data);
+void ballistic_overload(OverloadData* overload_data);
+void ballistic_height(HeightData* height_data);
+void ballistic_gamma(GammaData* gamma_data);
+
+私有函数(-)：
+void guidance_acc_cmd(UpdateInfo& update_info, GuidancePara& guidance_para, MissileData& m_data);
+void acc_cmd_fix(UpdateInfo& update_info, GuidancePara& guidance_para, MissileData& m_data);

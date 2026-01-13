@@ -1,0 +1,49 @@
+类名：
+DamageAnalysis
+
+变量：
+bool damageparams_fromfile = true;		//【01】是否从文件读取毁伤概率表数据
+int aircraft_id = 1;					//【02】飞机类型标识符		枚举范围（1，2，3，4，5，6）	1：战斗机	2：预警机	3：运输机	4：加油机	5：轰炸机	6：无人机	7：靶机
+int armament_id = 1;					//【03】战斗部类型标识符	枚举范围（1，2，3，4，5）		1：大飞散	2：单聚焦	3：双聚焦	4：三聚焦	5：离散杆
+int fragment_id = 1;					//【04】破片类型标识符		枚举范围（1，2，3，4，5）		1：球形		2：立方体	3：菱形		4：圆柱形	5：平行六面体
+int rank_id = 3;						//【05】毁伤等级类型标识符	枚举范围（1，2，3）				1：K级		2：B级		3：C级
+int missile_state = 1;					//【06】导弹状态			枚举范围（1，2，3）				1：正常飞行	2：引信启动	3：导弹爆炸
+std::string file_path = "..\\config_files_py\\input_damage\\";	//【07】概率表路径
+
+double target_latitude = 20.6009 / 180.0 * acos(-1);		//【08】目标纬度 [rad]
+double target_longitude = 119.901 / 180.0 * acos(-1);		//【09】目标经度 [rad]
+double target_altitude = 12000.0;							//【10】目标高度 [m]
+double target_angle_theta = 20 / 180.0 * acos(-1);			//【11】目标偏航角 [rad]
+double target_angle_psi = 0 / 180.0 * acos(-1);				//【12】目标俯仰角 [rad]
+double target_angle_roll = 0 / 180.0 * acos(-1);			//【13】目标滚转角 [rad]
+double target_velocity_north = -200;						//【14】目标速度，北天东坐标系，北向 [m/s]
+double target_velocity_up = 10;								//【15】目标速度，北天东坐标系，天向 [m/s]
+double target_velocity_east = 30;							//【16】目标速度，北天东坐标系，东向 [m/s]
+
+double missile_latitude = 20.6011 / 180.0 * acos(-1);		//【17】导弹纬度 [rad]
+double missile_longitude = 119.901 / 180.0 * acos(-1);		//【18】导弹经度 [rad]
+double missile_altitude = 11997;							//【19】导弹高度 [m]
+double missile_angle_theta = 90 / 180.0 * acos(-1);			//【20】导弹偏航角 [rad]
+double missile_angle_psi = 10 / 180.0 * acos(-1);			//【21】导弹俯仰角 [rad]
+double missile_angle_roll = 40 / 180.0 * acos(-1);			//【22】导弹滚转角 [rad]
+double missile_velocity_north = 800;						//【23】导弹速度，北天东坐标系，北向 [m/s]
+double missile_velocity_up = 10;							//【24】导弹速度，北天东坐标系，天向 [m/s]
+double missile_velocity_east = 40;							//【25】导弹速度，北天东坐标系，东向 [m/s]
+
+公有函数(+)：
+void initialize(DamageParams& params_input);
+void set_mt_params(DamageParams& params_input);
+void get_mt_params(DamageParams& params_output);
+void cal_pk();
+
+私有函数(-)：
+double interpolate(const InterpolationTable& table, double encounter_angle, double azimuthal_angle, bool fromfile, const std::string& filename);
+void LLA_2_NUE(double LLA_t[3], double LLA_m[3], double NUE[3]);
+void NUE_2_LLA(double LLA_t[3], double NUE[3], double LLA_m[3]);
+void cal_relative_data(
+	double target_latitude,			double target_longitude,		double target_altitude,
+	double target_angle_theta,		double target_angle_psi,		double target_angle_roll,
+	double target_velocity_north,	double target_velocity_up,		double target_velocity_east,
+	double missile_latitude,		double missile_longitude,		double missile_altitude,
+	double missile_angle_theta,		double missile_angle_psi,		double missile_angle_roll,
+	double missile_velocity_north,	double missile_velocity_up,		double missile_velocity_east);

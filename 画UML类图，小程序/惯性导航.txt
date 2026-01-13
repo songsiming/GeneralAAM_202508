@@ -1,0 +1,37 @@
+类名：
+Inertial
+
+变量：
+bool inertial_yes = false;                              // 是否开启惯性导航（不开启则进入上帝视角）[-]
+
+double dt = 0.01;                                       // 仿真步长 [s]
+
+double mt_dist = 0.0;                                   // 导弹-目标距离 [m]
+
+double acc_N_v[3] = { 0,0,0 };                          // 北-天-东坐标系下的加速度 [m/s^2]
+double m_loc_LLA_input[3] = { 0,0,0 };                  // 输入的导弹位置(纬度-经度-高度) [deg, deg, m]
+double m_loc_LLA_output[3] = { 0,0,0 };                 // 输出的导弹位置(纬度-经度-高度) [deg, deg, m]
+
+double intf_N_mean = 0;                                 // 北向惯导误差均值 [m]
+double intf_N_var = 0.33;                               // 北向惯导误差方差 [m^2]
+double intf_N_max = 1;                                  // 北向惯导误差最大值 [m]
+double intf_N_min = -1;                                 // 北向惯导误差最小值 [m]
+
+double intf_U_mean = 0;                                 // 天向惯导误差均值 [m]
+double intf_U_var = 0.33;                               // 天向惯导误差方差 [m^2]
+double intf_U_max = 1;                                  // 天向惯导误差最大值 [m]
+double intf_U_min = -1;                                 // 天向惯导误差最小值 [m]
+
+double intf_E_mean = 0;                                 // 东向惯导误差均值 [m]
+double intf_E_var = 0.33;                               // 东向惯导误差方差 [m^2]
+double intf_E_max = 1;                                  // 东向惯导误差最大值 [m]
+double intf_E_min = -1;                                 // 东向惯导误差最小值 [m]
+
+double m_loc_N[3] = { 0,0,0 };                          // 导弹位置(北-天-东坐标系) [m]
+
+double seeker_power_dist = 20e3;                        // 导引头开机距离 [m]
+
+公有函数(+)：
+void inertial_cal(double m_loc_LLA_input[3], double m_vel_N_v[3], double m_loc_LLA_output[3]);
+
+私有函数(-)：

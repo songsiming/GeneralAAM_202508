@@ -1,0 +1,90 @@
+类名：
+AirtoAir
+
+变量：
+
+UpdateInfo* update_info;
+MissileData* m_data;
+GuidancePara* guidance_para;
+
+bool pid_fix = false;				// PID，是否开启末段修正(比较复杂，小心使用)
+double Kp_h_user = 0.001585;		// PID，线性插值时候带入
+
+double lambda_dot_Kp = 3000;					// 视线角速率PID比例系数 [rad/s]
+double lambda_dot_Ki = 300;						// 视线角速率PID积分系数 [rad/s^2]
+double lambda_dot_Kd = 4000;					// 视线角速率PID微分系数 [rad]
+
+std::vector<double> err_lambda_dot_v_list;      // 铅锤方向视线角速率误差列表 [rad/s]
+int err_lambda_dot_v_window_size = 1000;     // 铅锤方向误差窗口大小 [-]
+std::vector<double> err_lambda_dot_h_list;      // 水平方向视线角速率误差列表 [rad/s]
+int err_lambda_dot_h_window_size = 1000;     // 水平方向误差窗口大小 [-]
+
+
+int para_control_num = 0;                       // 平行接近控制计数器 [-]
+
+int para_loop_num = 10;							// 平行接近初始化最大循环次数
+double fix_loc_NUE[3] = { 0,0,0 };				// 瞄准点位置误差向量(NUE坐标系) [m]
+double fix_old_NUE[3] = { 0,0,0 };				// 上一时刻瞄准点位置向量(NUE坐标系) [m]
+double fix_K[3] = { +0.49,+0.49,-0.49 };		// 瞄准点控制增益系数向量 [-]
+
+bool filter_yes = false;                        // 滤波器开关 - 控制是否启用滤波器【如果不是追求极致的"视线角速率=0"，那么可以不开启滤波】[-]
+double lambda_v_filter_alpha = 0.15;            // 铅锤方向视线角滤波系数 [-]
+double lambda_h_filter_alpha = 0.15;            // 水平方向视线角滤波系数 [-]
+double lambda_v_dot_filter_alpha = 0.15;        // 铅锤方向视线角速率滤波系数 [-]
+double lambda_h_dot_filter_alpha = 0.15;        // 水平方向视线角速率滤波系数 [-]
+double lambda_v_prev = 0.0;                     // 上一时刻铅锤方向视线角 [rad]
+double lambda_h_prev = 0.0;                     // 上一时刻水平方向视线角 [rad]
+double lambda_v_dot_prev = 0.0;                 // 上一时刻铅锤方向视线角速率 [rad/s]
+double lambda_h_dot_prev = 0.0;                 // 上一时刻水平方向视线角速率 [rad/s]
+
+double m_sigma_v = 0.0;                         // 导弹铅锤方向弹道倾角 [rad]
+double m_sigma_h = 0.0;                         // 导弹水平方向弹道倾角 [rad]
+double m_acc_G_s = 0.0;                         // 导弹地速加速度大小 [m/s^2]
+double m_vel_G_s_prev = 0.0;                    // 上一时刻导弹地速大小 [m/s]
+double m_loc_LLA_t0[3];                         // 导弹初始位置LLA坐标【计算目标速度时会用到】[纬度:rad, 经度:rad, 高度:m]
+
+double t_vel_G_v[3] = { 0,0,0 };                // 目标速度向量(地速坐标系) [m/s]
+double t_vel_G_s = 0.0;                         // 目标地速大小 [m/s]
+double t_vel_G_s_prev = 0.0;                    // 上一时刻目标地速大小 [m/s]
+double t_acc_G_s = 0.0;                         // 目标地速加速度大小 [m/s^2]
+double t_loc_G_prev[3] = { 0,0,0 };             // 上一时刻目标位置 [m]
+
+double t_gamma = 0.0;                           // 目标弹道倾角 [rad]
+double t_psis = 0.0;                            // 目标弹道偏角 [rad]
+double t_gamma_prev = 0.0;                      // 上一时刻目标弹道倾角 [rad]
+double t_psis_prev = 0.0;                       // 上一时刻目标弹道偏角 [rad]
+
+double t_sigma_v = 0.0;                         // 目标铅锤方向视线角 [rad]
+double t_sigma_h = 0.0;                         // 目标水平方向视线角 [rad]
+int para_control_method = 2;                    // 平行接近控制方法选择 [-]
+bool cout_yes = true;                           // 输出开关 - 控制是否输出调试信息 [-]
+
+int trace_control_method = 2;   // 追踪法控制方法选择 - 控制追踪法的具体实现方式 [-]
+
+double err_sigma_v_int = 0.0;               // 铅锤方向视线角误差积分 [rad*s]
+double err_sigma_h_int = 0.0;               // 水平方向视线角误差积分 [rad*s]
+double err_sigma_v_prev = 0.0;              // 铅锤方向上一时刻视线角误差 [rad]
+double err_sigma_h_prev = 0.0;              // 水平方向上一时刻视线角误差 [rad]
+
+double err_sigma_v_sum = 0.0;               // 铅锤方向视线角误差累加和 [rad]
+double err_sigma_h_sum = 0.0;               // 水平方向视线角误差累加和 [rad]
+
+int trace_control_num = 0;                  // 追踪法控制计数器 [-]
+double m_sigma_v = 0.0;                     // 导弹铅锤方向弹道倾角 [rad]
+double m_sigma_h = 0.0;                     // 导弹水平方向弹道倾角 [rad]
+bool cout_yes = true;                       // 输出开关 - 控制是否输出调试信息 [-]
+int trace_loop_num = 10;                    // 追踪法迭代循环次数 - 用于数值计算的迭代精度控制 [-]
+double fix_loc_NUE[3] = { 0,0,0 };          // 瞄准点位置误差向量(NUE坐标系) [m]
+double fix_old_NUE[3] = { 0,0,0 };          // 上一时刻瞄准点位置向量(NUE坐标系) [m]
+double fix_K[3] = { +0.99,+0.99,-0.99 };    // 瞄准点控制增益系数向量 [-]
+
+
+
+公有函数(+)：
+void ballistic_proportional_guidance(ProportionalGuidanceData* prop_data);
+void ballistic_parallel_guidance(ParallelApproachData* para_data);
+void ballistic_trace_guidance(TraceGuidanceData* trace_data);
+
+私有函数(-)：
+void guidance_acc_cmd(UpdateInfo& update_info, GuidancePara& guidance_para, MissileData& m_data);
+void acc_cmd_fix(UpdateInfo& update_info, GuidancePara& guidance_para, MissileData& m_data);

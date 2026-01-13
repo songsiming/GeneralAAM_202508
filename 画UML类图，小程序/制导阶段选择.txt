@@ -1,0 +1,56 @@
+类名：
+AirtoAir
+
+变量：
+UpdateInfo update_info;					// 更新数据
+MissileData m_data;						// 导弹自身数据
+GuidancePara* guidance_para;			// 制导相关数据
+
+ProportionalGuidanceData* prop_data;	// 寻的-比例导引，弹道数据
+ParallelApproachData* para_data;		// 寻的-平行接近，弹道数据
+TraceGuidanceData* trace_data;			// 寻的-追踪法，弹道数据
+LoftData* loft_data;					// 程序飞行-爬高，弹道数据
+GammaData* gamma_data;					// 程序飞行-定倾角，弹道数据
+HeightData* height_data;				// 程序飞行-定高，弹道数据
+OverloadData* overload_data;			// 程序飞行-定过载，弹道数据
+PincerData* pincer_data;				// 协同-钳形，弹道数据
+RadioBallisticData* radio_data;			// 无线电，弹道数据
+InertialBallisticData* inertial_data;	// 惯导，弹道数据
+
+std::string ballistic_name = "prop";	// 所选的弹道名称
+
+int id_ballistic_control = 2;			// 弹道控制方式：1-无线电；		2-程序飞行；3-惯性制导；	4-寻的制导；	5-协同制导(钳形)
+int id_homming_guidance = 1;			// 寻的制导方式：1-比例导引；	2-平行接近；3-追踪法
+int id_program_flight = 1;				// 程序飞行方式：1-爬高；		2-定高；	3-定过载；		4-定倾角
+double K_h_program = 0.4;				// 程序飞行(定过载、定倾角)高度切换比率
+double update_interval = 0.01;			// 更新间隔
+
+int miss_method = 2;					// 脱靶的判定逻辑（1-累积；2-连续）
+int miss_num = 0;						// 脱靶的累积数目（初始状态应设为0）
+int miss_threshold = 3;					// 脱靶的累积数目的阈值（错过目标的次数超过了这个阈值判定为脱靶）
+
+double m_loc_LLA_t0[3] = {				// 导弹初始位置，LLA坐标系，单位：rad
+	20.0 / 180.0 * acos(-1),			// 导弹初始纬度，LLA坐标系，单位：rad
+	120.0 / 180.0 * acos(-1),			// 导弹初始经度，LLA坐标系，单位：rad
+	7000.0 };							// 导弹初始高度，LLA坐标系，单位：rad
+
+int t_state = 1;						// 目标状态（目标是否存在，与协同相关）
+double t_vel_G_v_t0[3] = { 200,-10,3 };	// 目标初始速度（爬高、追踪法初始化时要用到）
+
+bool cout_yes = false;					// 仿真过程中是否输出
+bool dout_yes = false;					// 仿真结束后是否绘图
+bool fout_yes = true;					// 仿真结束后是否输出日志
+bool config_script_yes = false;			// 是否由脚本配置
+
+std::string config_file_path = "./config_files/";	// 配置文件路径
+std::string result_file_path = "result_file.csv";	// 结果文件路径
+
+公有函数(+)：
+void mt_loc_cmd(UpdateInfo& update_info, GuidancePara& guidance_para, MissileData& m_data);
+void inertial_cal(double m_loc_LLA_input[3], double m_vel_N_v[3], double m_loc_LLA_output[3]);
+void radio_trans(double t_loc_NUE_input[3], double t_loc_NUE_trans[3]);
+void seeker_module();
+
+私有函数(-)：
+LLA_2_NUE(update_info.t_loc_LLA, update_info.m_loc_LLA, update_info.rel_loc_NUE);
+TOA_acc(update_info, guidance_para);
