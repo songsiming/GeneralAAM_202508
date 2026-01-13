@@ -1,0 +1,71 @@
+标识号只分配3级，可能有2-3个下划线。
+
+1级（第1个下划线前面）：项目标识：缩写（字母长度、命名任意，不要和大项目的其他子项目重叠即可）
+		KDTY
+
+2级（第2个下划线前面）：文档标识：项目标识_文档缩写（字母任意，不要和本项目其他报告重叠即可）
+		KDTY_SJFA		设计方案	00
+		KDTY_XQGG		需求规格	01
+		KDTY_SJSM		设计说明	02
+		KDTY_YHSC		用户手册	03
+		KDTY_CSDG		测试大纲	04
+		KDTY_CSBG		测试报告	05
+		KDTY_JKSM		接口说明	06
+		KDTY_YZZJ		研制总结	07
+
+3级（第2个下划线后面）报告里的功能：项目标识_文档缩写_功能缩写（字母任意，不要和本报告的其他功能名字重叠即可）
+	以“需求规格”为例，功能相关：
+		KDTY_XQGG_JBFZ			基本仿真
+		KDTY_XQGG_JBFZ_DDFS		导弹发射				(11)
+		KDTY_XQGG_JBFZ_DLMX		动力学模型				(12)
+		KDTY_XQGG_JBFZ_QDMX		气动力模型				(13)
+		KDTY_XQGG_JBFZ_FDJS		发动机模型				(14)
+		KDTY_XQGG_JBFZ_FXKZ		飞行控制系统模型		(15)
+		KDTY_XQGG_JBFZ_FXHJ		飞行环境仿真模型		(16)
+		KDTY_XQGG_JBFZ_LDFX		导弹雷达辐射特性模型	(17)
+		
+		KDTY_XQGG_ZDKZ			制导控制
+		KDTY_XQGG_ZDKZ_ZDXZ		制导阶段选择			(21)
+		KDTY_XQGG_ZDKZ_GXDH		惯性导航				(22)
+		KDTY_XQGG_ZDKZ_CXFX		程序飞行(含原4个弹道)	(23)
+		KDTY_XQGG_ZDKZ_XDZD		寻的制导(含原3个弹道)	(24)
+		KDTY_XQGG_ZDKZ_DZGR		电子干扰				(25)
+		KDTY_XQGG_ZDKZ_QXDD		钳形弹道(补)			(26)
+		KDTY_XQGG_ZDKZ_WXDZ		无线电指令修正弹道(补)	(27)
+		
+		KDTY_XQGG_HSFX			毁伤分析
+		KDTY_XQGG_HSFX_HSGL		毁伤概率表				(31)
+		KDTY_XQGG_HSFX_YZPH		引战配合				(32)
+		KDTY_XQGG_HSFX_HSPG		毁伤评估				(33)
+		
+		KDTY_XQGG_DTXT			动态协同
+		KDTY_XQGG_DTXT_SJLM		数据链模块				(41)
+		KDTY_XQGG_DTXT_JDXT		机弹协同				(42)
+		KDTY_XQGG_DTXT_DDXT		弹弹协同				(43)
+	
+	性能相关：
+		KDTY_XQGG_FDJL			发动机类型				(2种)
+		KDTY_XQGG_BJFX			敏感度和能力边界分析	(3种)
+		
+		KDTY_XQGG_ZDJD			制导阶段				(4个)
+		KDTY_XQGG_DDKZ			弹道控制方式			(5种)
+		KDTY_XQGG_DDCS			弹道参数配置			(3种)
+		KDTY_XQGG_DYLV			导引律					(3种)
+		KDTY_XQGG_GRQX			干扰情形				(2种)
+		KDTY_XQGG_DDMS			弹道模式				(2种)
+		
+		KDTY_XQGG_YSXM			易损性模型				(6类)
+		KDTY_XQGG_ZDBM			战斗部模型				(5类)
+		KDTY_XQGG_PPXZ			破片形状				(5种)
+		KDTY_XQGG_HSDJ			毁伤等级				(3种)
+		KDTY_XQGG_HSPG			毁伤评估模块性能		(3个)
+		
+		KDTY_XQGG_SJLC			数据链参数				(2个)
+		KDTY_XQGG_XTMS			动态协同模式			(2种)
+		
+		KDTY_XQGG_SRSC			输入输出				(相对通用)
+		
+		KDTY_XQGG_DBSJ			单步仿真时间			(<20ms)
+
+每个报告独有的（例如需规中的人员、培训），只要不和同一报告中的其他项重复即可。
+
